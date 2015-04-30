@@ -19,8 +19,8 @@ int FusedMlpPredict();
 
 //////////////////////////////////////////////////////////////////////////
 
-const string trainImgPath = "D:\\WorkSpace\\Work4\\VerificationCode\\bin\\image\\Ñש±¾\\";
-const string testImgPath = "D:\\WorkSpace\\Work4\\VerificationCode\\bin\\image\\segment_image\\";
+const string trainImgPath = "D:\\WorkSpace\\GitHub\\edocv\\image\\train_sample\\";
+const string testImgPath = "D:\\WorkSpace\\GitHub\\edocv\\image\\segment_image\\";
 
 const Size normSize(20, 20);
 
@@ -36,7 +36,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	//TrainANN("ann.xml");
 	//TestANN("ann-95.26.xml");
 
-	TrainSVM("svm.xml");
+	TrainSVM("svm-0430-100-cv.xml");
 	//TestSVM("svm.xml");
 
 	//FusedMlpPredict();

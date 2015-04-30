@@ -6,6 +6,7 @@ Debug
 Release
 ipch
 *.sdf
+*.suo
 
 # My configrations:
 3rd-party
