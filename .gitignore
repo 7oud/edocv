@@ -1,5 +1,13 @@
 # Windows:
 Thumbs.db
 
+# Visual Studio
+Debug
+Release
+ipch
+*.sdf
+
 # My configrations:
 3rd-party
+image
+bin
