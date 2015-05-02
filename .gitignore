@@ -5,6 +5,7 @@ Thumbs.db
 Debug
 Release
 ipch
+*.opensdf
 *.sdf
 *.suo
 
