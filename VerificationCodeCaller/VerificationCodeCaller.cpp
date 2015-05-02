@@ -26,18 +26,20 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	//string image_path = "..\\image";
-	string image_path = "..\\bin\\image\\download_image\\same";
+	string image_path = "..\\image\\download_image\\OK";
 
 	vector<string> image_list;
 	get_image_list(image_path, image_list);
 
-	int total_cnt = 0, correct_cnt = 0, idx = 0;
+
+	int lv_cnt[5] = {0};
+	int lv_correct_cnt[5] = {0};
+
 	for (vector<string>::iterator it = image_list.begin(); it != image_list.end(); ++it)
 	{
 		string img_file = image_path + "\\" + *it;
 
 		Mat img = imread(img_file, 4);
-
 		if (img.data == NULL)
 		{
 			DeleteFile(img_file.c_str());
@@ -48,49 +50,43 @@ int _tmain(int argc, _TCHAR* argv[])
 		float conf[4];
 		int ret = RecognizeCode((char*)(img_file.c_str()), code, conf);
 
-		if (ret < 0)
+		if (ret > 0)
 		{
-			cout << "pass." << endl;
-			//MoveFile(img_file.c_str(), (image_path + "\\@\\" + *it).c_str());
-		}
-		else
-		{
-			cout << *it << endl;
-			cout << "\t" << code[0] << code[1] << code[2] << code[3] << endl;
-			cout << "\t" << conf[0] << " " << conf[1] << " " << conf[2] << " " << conf[3] << endl;
+			char str[5];
+			str[0] = code[0];str[1] = code[1];str[2] = code[2];str[3] = code[3];str[4]='\0';
 
-			if (ret == 4)
-			{
-				cout << "\t" << " same" << endl;
-			}
+			if (it->substr(6, 4) == string(str))
+				lv_correct_cnt[ret]++;
 			else
 			{
-				cout << "\t" << " diff" << endl;
+				//imshow("code", img);
+				//waitKey(0);
+				//destroyAllWindows();
 			}
-		}
 
-		//imshow("code", img);
-		//waitKey(0);
-		//destroyAllWindows();
-
-		char str[5];
-		str[0] = code[0];str[1] = code[1];str[2] = code[2];str[3] = code[3];str[4]='\0';
-		if (it->substr(6, 4) == string(str))
-		{
-			correct_cnt++;
+			//cout << "[" << ret << "]" << "\t" << *it << endl;
+			//cout << "\t" << code[0] << code[1] << code[2] << code[3];
+			//cout << "\t" << "[" << conf[0] << " " << conf[1] << " " << conf[2] << " " << conf[3] << "]" << endl;
 		}
 		else
 		{
-			//imshow("code", img);
-			//waitKey(0);
-			//destroyAllWindows();
+			cout << "[" << ret << "]" << "\t" << "pass." << endl;
+			//MoveFile(img_file.c_str(), (image_path + "\\@\\" + *it).c_str());
 		}
-				
-		total_cnt++;
-		idx++;
+
+		lv_cnt[ret]++;
 	}
 
-	cout << correct_cnt << "/" << total_cnt << " = " << correct_cnt/(float)total_cnt << endl;
+	int total_cnt = 0, correct_cnt = 0;
+	for (int i = 0; i < 5; i++)
+	{
+		total_cnt += lv_cnt[i];
+		correct_cnt += lv_correct_cnt[i];
+
+		cout << "Lv[" << i << "]:" << lv_correct_cnt[i] << "/" << lv_cnt[i] << " = " << lv_correct_cnt[i]/(float)lv_cnt[i] << endl;
+	}
+
+	cout << "TOTAL: " << correct_cnt << "/" << total_cnt << " = " << correct_cnt/(float)total_cnt << endl;
 
 	if (ReleaseEngine() < 0)
 		cout << "release failed" << endl;
