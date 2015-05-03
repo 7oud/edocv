@@ -52,6 +52,10 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		if (ret > 0)
 		{
+			cout << "[" << ret << "]" << "\t" << *it << endl;
+			cout << "\t" << code[0] << code[1] << code[2] << code[3];
+			cout << "\t" << "[" << conf[0] << " " << conf[1] << " " << conf[2] << " " << conf[3] << "]" << endl;
+
 			char str[5];
 			str[0] = code[0];str[1] = code[1];str[2] = code[2];str[3] = code[3];str[4]='\0';
 
@@ -59,17 +63,14 @@ int _tmain(int argc, _TCHAR* argv[])
 				lv_correct_cnt[ret]++;
 			else
 			{
-				//imshow("code", img);
-				//waitKey(0);
-				//destroyAllWindows();
+				imshow("code", img);
+				waitKey(0);
+				destroyAllWindows();
 			}
-
-			//cout << "[" << ret << "]" << "\t" << *it << endl;
-			//cout << "\t" << code[0] << code[1] << code[2] << code[3];
-			//cout << "\t" << "[" << conf[0] << " " << conf[1] << " " << conf[2] << " " << conf[3] << "]" << endl;
 		}
 		else
 		{
+			cout << *it << " ";
 			cout << "[" << ret << "]" << "\t" << "pass." << endl;
 			//MoveFile(img_file.c_str(), (image_path + "\\@\\" + *it).c_str());
 		}

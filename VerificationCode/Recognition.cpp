@@ -37,6 +37,8 @@ Mat CalcImageFeature(Mat& imgSrc, Size normSize)
 	Mat imgNorm;
 	resize(imgGray, imgNorm, normSize);
 
+	deskew(imgNorm, normSize);
+
 	Mat imgRowVec;
 	imgNorm.convertTo(imgRowVec, CV_32FC1);
 
