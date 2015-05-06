@@ -25,14 +25,13 @@ int _tmain(int argc, _TCHAR* argv[])
 		return -1;
 	}
 
-	//string image_path = "..\\image";
-	string image_path = "..\\image\\download_image\\OK";
+	string image_path = "..\\image\\download_image";
 
 	vector<string> image_list;
 	get_image_list(image_path, image_list);
 
 
-	int lv_cnt[5] = {0};
+	int lv_cnt[5] = {0}, fail_cnt = 0;
 	int lv_correct_cnt[5] = {0};
 
 	for (vector<string>::iterator it = image_list.begin(); it != image_list.end(); ++it)
@@ -46,15 +45,14 @@ int _tmain(int argc, _TCHAR* argv[])
 			continue;
 		}
 
-		char code[4];
-		float conf[4];
+		char code[4] = {0};
+		float conf[4] = {0};
 		int ret = RecognizeCode((char*)(img_file.c_str()), code, conf);
-
-		if (ret > 0)
+		if (ret >= 0)
 		{
-			cout << "[" << ret << "]" << "\t" << *it << endl;
-			cout << "\t" << code[0] << code[1] << code[2] << code[3];
-			cout << "\t" << "[" << conf[0] << " " << conf[1] << " " << conf[2] << " " << conf[3] << "]" << endl;
+			//cout << "[" << ret << "]" << "\t" << *it << endl;
+			//cout << "\t" << code[0] << code[1] << code[2] << code[3];
+			//cout << "\t" << "[" << conf[0] << " " << conf[1] << " " << conf[2] << " " << conf[3] << "]" << endl;
 
 			char str[5];
 			str[0] = code[0];str[1] = code[1];str[2] = code[2];str[3] = code[3];str[4]='\0';
@@ -63,20 +61,23 @@ int _tmain(int argc, _TCHAR* argv[])
 				lv_correct_cnt[ret]++;
 			else
 			{
-				imshow("code", img);
-				waitKey(0);
-				destroyAllWindows();
+				//imshow("code", img);
+				//waitKey(0);
+				//destroyAllWindows();
 			}
+			lv_cnt[ret]++;
 		}
 		else
 		{
-			cout << *it << " ";
-			cout << "[" << ret << "]" << "\t" << "pass." << endl;
+			//cout << *it << " ";
+			//cout << "[" << ret << "]" << "\t" << "pass." << endl;
 			//MoveFile(img_file.c_str(), (image_path + "\\@\\" + *it).c_str());
-		}
 
-		lv_cnt[ret]++;
+			fail_cnt++;
+		}
 	}
+
+	cout << "FAIL: " << fail_cnt << endl;
 
 	int total_cnt = 0, correct_cnt = 0;
 	for (int i = 0; i < 5; i++)
@@ -84,8 +85,9 @@ int _tmain(int argc, _TCHAR* argv[])
 		total_cnt += lv_cnt[i];
 		correct_cnt += lv_correct_cnt[i];
 
-		cout << "Lv[" << i << "]:" << lv_correct_cnt[i] << "/" << lv_cnt[i] << " = " << lv_correct_cnt[i]/(float)lv_cnt[i] << endl;
+		cout << "Lv[" << i << "]: " << lv_correct_cnt[i] << "/" << lv_cnt[i] << " = " << lv_correct_cnt[i]/(float)lv_cnt[i] << endl;
 	}
+	total_cnt += fail_cnt;
 
 	cout << "TOTAL: " << correct_cnt << "/" << total_cnt << " = " << correct_cnt/(float)total_cnt << endl;
 

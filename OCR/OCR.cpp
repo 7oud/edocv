@@ -5,17 +5,13 @@
 #include "Util.h"
 
 
-
 //////////////////////////////////////////////////////////////////////////
 
 int TrainANN(string classifier_file);
-int TestANN(string classifier_file);
 int TrainSVM(string classifier_file);
-int TestSVM(string classifier_file);
-
+int FusedMlpPredict(string classifier_file1, string classifier_file2);
 int AddSample();
 
-int FusedMlpPredict();
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -24,7 +20,7 @@ const string testImgPath = "D:\\WorkSpace\\GitHub\\edocv\\image\\segment_image\\
 
 const Size normSize(20, 20);
 
-#define EVAL_TRAINING_SAMPLE
+//#define EVAL_TRAINING_SAMPLE
 
 /* ANN下置信度为1.403105时，response矩阵的每个值都是1.403105，需要分析原因 */
 
@@ -34,12 +30,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	//AddSample();
 
 	//TrainANN("ann.xml");
-	//TestANN("ann-95.26.xml");
+	TrainSVM("svm.xml");
 
-	TrainSVM("svm-0430-100-cv.xml");
-	//TestSVM("svm.xml");
-
-	//FusedMlpPredict();
+	//FusedMlpPredict("ann1.xml", "ann2.xml");
 
 	return 0;
 }
@@ -104,7 +97,9 @@ int TrainANN(string classifier_file)
 
 			double t = (double)getTickCount();
 
-			Mat mat = CalcImageFeature(img, normSize);
+			Mat imgNorm = NormalizeImage(img, normSize);
+
+			Mat mat = CalcSimpleFeature(imgNorm);
 
 			mlp.predict(mat, matRecogResponse);
 
@@ -149,52 +144,6 @@ int TrainANN(string classifier_file)
 	cout << "CORRECT: " << correct << "/" << total << " = " << correct/(float)total << endl;
 	cout << "Time : " << totalTime/(double)getTickFrequency()*1000. << "/" << total << " " << 
 		totalTime/(double)getTickFrequency()*1000./total << endl;
-
-	return 0;
-}
-
-
-int TestANN(string classifier_file)
-{
-	CvANN_MLP mlp;
-	mlp.load(classifier_file.c_str());
-
-	vector<string> testSamplesList;
-	GetFilesList(testImgPath, "BMP", testSamplesList);
-
-	Mat matRecogResponse(1, GetClassCount(), CV_32FC1);
-	for (size_t i = 0; i < testSamplesList.size(); i++)
-	{
-		string sampleName = testImgPath + testSamplesList[i];
-
-		Mat img = imread(sampleName, 4);
-		if (img.data == NULL)
-			continue;
-
-		Mat mat = CalcImageFeature(img, normSize);
-
-		mlp.predict(mat, matRecogResponse);
-
-		Point maxLoc(0, 0);
-		double maxVal = 0.0;
-		minMaxLoc(matRecogResponse, 0, &maxVal, 0, &maxLoc);
-
-		string label = MapIndex2Label(maxLoc.x);
-
-		//cout << label << ": " << maxVal << endl;
-		//imshow("img", img);
-		//waitKey(0);
-		//destroyAllWindows();
-
-		string folder = testImgPath + "\\" + label;
-
-		mkdir(folder.c_str());
-
-		char name[256];
-		sprintf(name, "%s\\%d_%f.bmp", folder.c_str(), i, maxVal);
-		imwrite(name, img);
-		DeleteFile(sampleName.c_str());
-	}
 
 	return 0;
 }
@@ -256,7 +205,10 @@ int TrainSVM(string classifier_file)
 
 			double t = (double)getTickCount();
 
-			Mat mat = CalcImageFeature(img, normSize);
+			Mat imgNorm = NormalizeImage(img, normSize);
+
+			//Mat mat = CalcSimpleFeature(imgNorm);
+			Mat mat = CalcHogFeature(imgNorm);
 
 			int idx = (int)svm.predict(mat);
 			string label = MapIndex2Label(idx);
@@ -298,52 +250,6 @@ int TrainSVM(string classifier_file)
 }
 
 
-int TestSVM(string classifier_file)
-{
-	CvSVM svm;
-	svm.load(classifier_file.c_str());
-
-	vector<string> testSamplesList;
-	GetFilesList(testImgPath, "BMP", testSamplesList);
-
-	Mat matRecogResponse(1, GetClassCount(), CV_32FC1);
-	for (size_t i = 0; i < testSamplesList.size(); i++)
-	{
-		string sampleName = testImgPath + testSamplesList[i];
-
-		Mat img = imread(sampleName, 4);
-		if (img.data == NULL)
-			continue;
-
-		Mat mat = CalcImageFeature(img, normSize);
-
-		int idx = (int)svm.predict(mat);
-
-		string label = MapIndex2Label(idx);
-
-		//cout << label << endl;
-		//imshow("img", img);
-		//waitKey(0);
-		//destroyAllWindows();
-
-		string folder;
-		if (label[0] > 'Z')
-			folder = testImgPath + "\\" + label + label;
-		else
-			folder = testImgPath + "\\" + label;
-
-		mkdir(folder.c_str());
-
-		char name[256];
-		sprintf(name, "%s\\%d.bmp", folder.c_str(), i);
-		imwrite(name, img);
-		DeleteFile(sampleName.c_str());
-	}
-
-	return 0;
-}
-
-
 int AddSample()
 {
 #if 1
@@ -373,8 +279,7 @@ int AddSample()
 }
 
 
-
-int FusedMlpPredict()
+int FusedMlpPredict(string classifier_file1, string classifier_file2)
 {
 	cout << "Init file list..." << endl;
 
@@ -384,8 +289,8 @@ int FusedMlpPredict()
 	int clsCnt = trainSamplesList.size();
 
 	CvANN_MLP mlp[2];
-	mlp[0].load("ann-0428-96.33.xml");
-	mlp[1].load("ann-0429-96.69.xml");
+	mlp[0].load(classifier_file1.c_str());
+	mlp[1].load(classifier_file2.c_str());
 	
 	cout << "Evaluate training samples..." << endl;
 
@@ -408,7 +313,9 @@ int FusedMlpPredict()
 
 			double t = (double)getTickCount();
 
-			Mat mat = CalcImageFeature(img, normSize);
+			Mat imgNorm = NormalizeImage(img, normSize);
+
+			Mat mat = CalcSimpleFeature(imgNorm);
 
 			mlp[0].predict(mat, matResponse[0]);
 			mlp[1].predict(mat, matResponse[1]);

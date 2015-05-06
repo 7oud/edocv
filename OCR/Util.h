@@ -33,7 +33,11 @@ int GetClassCount();
 int MapLabel2Index(string label);
 string MapIndex2Label(int idx);
 
-Mat CalcImageFeature(Mat& imgSrc, Size normSize);
+Mat NormalizeImage(Mat& imgSrc, Size normSize);
+
+Mat CalcSimpleFeature(Mat& imgNorm);
+
+Mat CalcHogFeature(Mat& imgNorm);
 
 int makeTrainMatrix(string trainImgPath, vector<LabeledSampleList>& trainSamplesList, Size normSize, 
 	Mat& matTrainData, Mat& matTrainResponse);

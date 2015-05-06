@@ -9,7 +9,10 @@ string MapIndex2Label(int idx);
 
 int MapLabel2Index(string label);
 
-Mat CalcImageFeature(Mat& imgSrc, Size normSize);
+Mat NormalizeImage(Mat& imgSrc, Size normSize);
 
+Mat CalcSimpleFeature(Mat& imgNorm);
+
+Mat CalcHogFeature(Mat& imgNorm);
 
 #endif

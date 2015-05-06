@@ -25,7 +25,8 @@ void deskew(Mat& img, Size SZ)
 	warpAffine(img, img, warp, SZ, WARP_INVERSE_MAP | INTER_LINEAR);
 }
 
-Mat CalcImageFeature(Mat& imgSrc, Size normSize)
+
+Mat NormalizeImage(Mat& imgSrc, Size normSize)
 {
 	Mat imgGray(imgSrc.rows, imgSrc.cols, CV_8UC1);
 
@@ -39,12 +40,77 @@ Mat CalcImageFeature(Mat& imgSrc, Size normSize)
 
 	deskew(imgNorm, normSize);
 
+	return imgNorm;
+}
+
+
+Mat CalcSimpleFeature(Mat& imgNorm)
+{
 	Mat imgRowVec;
 	imgNorm.convertTo(imgRowVec, CV_32FC1);
 
 	return imgRowVec.reshape(0, 1);
 }
 
+
+Mat CalcHogFeature(Mat& imgNorm)
+{
+	Mat gx, gy;
+	Sobel(imgNorm, gx, CV_32F, 1, 0);
+	Sobel(imgNorm, gy, CV_32F, 0, 1);
+
+	Mat mag, ang;
+	cartToPolar(gx, gy, mag, ang);
+
+	int bin_n = 16;
+
+	Mat bin(imgNorm.rows, imgNorm.cols, CV_32SC1);
+	for (int i = 0; i < ang.rows; i++)
+		for (int j = 0; j < ang.cols; j++)
+			bin.at<int>(i, j) = (bin_n * ang.at<float>(i, j) / (2 * CV_PI));
+
+	//Mat bin2;
+	//ang.convertTo(bin2, CV_32SC1, bin_n / (2 * CV_PI));
+
+	const int BLOCK_CNT = 4;
+	Rect rc[BLOCK_CNT];
+	rc[0] = Rect(0, 0, 10, 10);
+	rc[1] = Rect(0, 10, 10, 10);
+	rc[2] = Rect(10, 0, 10, 10);
+	rc[3] = Rect(10, 10, 10, 10);
+
+	Mat bin_cells[BLOCK_CNT], mag_cells[BLOCK_CNT], hists[BLOCK_CNT];
+
+	for (int i = 0; i < BLOCK_CNT; i++)
+	{
+		bin_cells[i] = bin(rc[i]);
+		mag_cells[i] = mag(rc[i]);
+		hists[i] = Mat::zeros(1, bin_n, CV_32FC1);
+	}
+
+	for (int idx = 0; idx < BLOCK_CNT; idx++)
+	{
+		for (int i = 0; i < bin_cells[idx].rows; i++)
+		{
+			for (int j = 0; j < bin_cells[idx].cols; j++)
+			{
+				hists[idx].at<float>(0, bin_cells[idx].at<int>(i, j)) += mag_cells[idx].at<float>(i, j);
+			}
+		}
+	}
+
+	int len = hists[0].cols;
+	Mat hist(1, BLOCK_CNT * len, CV_32FC1);
+	for (int i = 0; i < BLOCK_CNT; i++)
+		hists[i].copyTo(hist.colRange(i*len, (i+1)*len));
+
+	double eps = 1e-7;
+	hist /= sum(hist).val[0] + eps;
+	sqrt(hist, hist);
+	hist /= norm(hist) + eps;
+
+	return hist;
+}
 
 ///////////////////////// Label MAPPING //////////////////////////////////
 

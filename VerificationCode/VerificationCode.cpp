@@ -31,7 +31,7 @@ VERIFICATIONCODE_API int InitEngine()
 {
 	mlp[0].load("classifier\\modelm0.xml");
 	mlp[1].load("classifier\\modelm1.xml");
-	svm.load("classifier\\models.xml");
+	svm.load("classifier\\svm-0504-98.71-cv.xml");
 
 	if (mlp[0].get_layer_count() <= 0 || mlp[1].get_layer_count() <= 0)
 		return -1;
@@ -106,10 +106,13 @@ VERIFICATIONCODE_API int RecognizeCode(char* filePath, char* code, float* conf)
 	int same_cnt = 0;
 	for (int i = 0; i < CH_NUM; i++)
 	{
-		Mat mat = CalcImageFeature(sq_img[i], normSize);
+		Mat imgNorm = NormalizeImage(sq_img[i], normSize);
+
+		Mat mat = CalcSimpleFeature(imgNorm);
+		Mat mat2 = CalcHogFeature(imgNorm);
 
 		mlpRecognize(mat, &(mlp_code[i]), &(conf[i]));
-		svmRecognize(mat, &(svm_code[i]));
+		svmRecognize(mat2, &(svm_code[i]));
 
 		if (mlp_code[i] == svm_code[i])
 		{
