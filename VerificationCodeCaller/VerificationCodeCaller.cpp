@@ -25,7 +25,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		return -1;
 	}
 
-	string image_path = "..\\image\\download_image";
+	string image_path = "..\\image\\download_image\\test";
 
 	vector<string> image_list;
 	get_image_list(image_path, image_list);
@@ -33,6 +33,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	int lv_cnt[5] = {0}, fail_cnt = 0;
 	int lv_correct_cnt[5] = {0};
+	double totalTime = 0;
 
 	for (vector<string>::iterator it = image_list.begin(); it != image_list.end(); ++it)
 	{
@@ -45,14 +46,20 @@ int _tmain(int argc, _TCHAR* argv[])
 			continue;
 		}
 
+		double t = (double)getTickCount();
+
 		char code[4] = {0};
 		float conf[4] = {0};
 		int ret = RecognizeCode((char*)(img_file.c_str()), code, conf);
+
+		t = (double)getTickCount() - t;
+		totalTime += t;
+
 		if (ret >= 0)
 		{
-			//cout << "[" << ret << "]" << "\t" << *it << endl;
-			//cout << "\t" << code[0] << code[1] << code[2] << code[3];
-			//cout << "\t" << "[" << conf[0] << " " << conf[1] << " " << conf[2] << " " << conf[3] << "]" << endl;
+			cout << "[" << ret << "]" << "\t" << *it << endl;
+			cout << "\t" << code[0] << code[1] << code[2] << code[3];
+			cout << "\t" << "[" << conf[0] << " " << conf[1] << " " << conf[2] << " " << conf[3] << "]" << endl;
 
 			char str[5];
 			str[0] = code[0];str[1] = code[1];str[2] = code[2];str[3] = code[3];str[4]='\0';
@@ -69,12 +76,15 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 		else
 		{
-			//cout << *it << " ";
-			//cout << "[" << ret << "]" << "\t" << "pass." << endl;
+			cout << *it << " ";
+			cout << "[" << ret << "]" << "\t" << "pass." << endl;
 			//MoveFile(img_file.c_str(), (image_path + "\\@\\" + *it).c_str());
-
 			fail_cnt++;
 		}
+
+		imshow("code", img);
+		waitKey(0);
+		destroyAllWindows();
 	}
 
 	cout << "FAIL: " << fail_cnt << endl;
@@ -90,6 +100,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	total_cnt += fail_cnt;
 
 	cout << "TOTAL: " << correct_cnt << "/" << total_cnt << " = " << correct_cnt/(float)total_cnt << endl;
+	cout << "Time : " << totalTime/(double)getTickFrequency()*1000. << "/" << total_cnt << " " << 
+		totalTime/(double)getTickFrequency()*1000./total_cnt << endl;
 
 	if (ReleaseEngine() < 0)
 		cout << "release failed" << endl;

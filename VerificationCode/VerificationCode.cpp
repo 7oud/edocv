@@ -31,7 +31,7 @@ VERIFICATIONCODE_API int InitEngine()
 {
 	mlp[0].load("classifier\\modelm0.xml");
 	mlp[1].load("classifier\\modelm1.xml");
-	svm.load("classifier\\svm-0504-98.71-cv.xml");
+	svm.load("classifier\\models.xml");
 
 	if (mlp[0].get_layer_count() <= 0 || mlp[1].get_layer_count() <= 0)
 		return -1;

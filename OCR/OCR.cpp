@@ -176,7 +176,7 @@ int TrainSVM(string classifier_file)
 	//criteria= cvTermCriteria(CV_TERMCRIT_EPS, 1000, FLT_EPSILON);   
 	criteria= cvTermCriteria(CV_TERMCRIT_EPS, 1000, 0.01);
 
-	param = CvSVMParams(CvSVM::C_SVC, CvSVM::LINEAR, 10.0, 8.0, 1.0, 10.0, 0.5, 0.1, NULL, criteria);   //CvSVM::RBF
+	param = CvSVMParams(CvSVM::C_SVC, CvSVM::RBF, 10.0, 8.0, 1.0, 10.0, 0.5, 0.1, NULL, criteria);   //CvSVM::LINEAR
 
 	//svm.train(matTrainData, matTrainResponse, Mat(), Mat(), param);
 	svm.train_auto(matTrainData, matTrainResponse, Mat(), Mat(), param, 10);
